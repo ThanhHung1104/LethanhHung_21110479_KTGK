@@ -54,14 +54,18 @@ export default class App extends Component<{}, State> {
 
   handleLapPress() {
     if (this.state.running) {
-      const lap = this.state.timeElapsed || 0;
+      const lapTime = this.state.timeElapsed || 0;
+      const lastLapTime = this.state.laps.length > 0 ? this.state.laps[this.state.laps.length - 1] : 0;
+      const lapInterval = lapTime - lastLapTime;
+      
       this.setState({
-        laps: [...this.state.laps, lap],
+        laps: [...this.state.laps, lapInterval],
       });
     } else {
       this.resetLaps();
     }
   }
+  
 
   resetLaps() {
     this.setState({
