@@ -3,13 +3,12 @@ import { SafeAreaView, StyleSheet, Text, TouchableHighlight, View } from 'react-
 import formatTime from 'minutes-seconds-milliseconds';
 
 interface State {
-    timeElapsed: number | null;
-    running: boolean;
-    startTime: number | null; 
-    laps: number[];
-    lapButtonState: 'lap' | 'reset';
-  }
-  
+  timeElapsed: number | null;
+  running: boolean;
+  startTime: number | null; 
+  laps: number[];
+  lapButtonState: 'lap' | 'reset';
+}
 
 export default class App extends Component<{}, State> {
   interval: NodeJS.Timeout | undefined;
@@ -25,6 +24,7 @@ export default class App extends Component<{}, State> {
     };
     this.handleStartPress = this.handleStartPress.bind(this);
     this.handleLapPress = this.handleLapPress.bind(this);
+    this.handleResetPress = this.handleResetPress.bind(this);
   }
 
   handleStartPress() {
@@ -51,8 +51,6 @@ export default class App extends Component<{}, State> {
       }, 30);
     }
   }
-  
-  
 
   handleLapPress() {
     if (this.state.running) {
@@ -61,15 +59,21 @@ export default class App extends Component<{}, State> {
         laps: [...this.state.laps, lap],
       });
     } else {
-      // Reset thời gian đếm về 0 và xóa các lap đã lưu
-      this.setState({
-        timeElapsed: null,
-        laps: [],
-        lapButtonState: 'lap'
-      });
+      this.resetLaps();
     }
   }
-  
+
+  resetLaps() {
+    this.setState({
+      timeElapsed: null,
+      laps: [],
+      lapButtonState: 'lap'
+    });
+  }
+
+  handleResetPress() {
+    this.resetLaps();
+  }
 
   startStopButton() {
     const buttonStyle = this.state.running ? styles.stopButton : styles.startButton;
@@ -88,7 +92,7 @@ export default class App extends Component<{}, State> {
 
   lapButton() {
     const buttonLabel = this.state.lapButtonState === 'lap' ? 'Lap' : 'Reset';
-    const buttonAction = this.state.lapButtonState === 'lap' ? this.handleLapPress : this.handleStartPress;
+    const buttonAction = this.state.lapButtonState === 'lap' ? this.handleLapPress : this.handleResetPress;
     return (
       <TouchableHighlight
         style={styles.lapButton}
@@ -101,16 +105,25 @@ export default class App extends Component<{}, State> {
   }
 
   laps() {
-    return this.state.laps.map((time, index) => {
-      const lapIndex = this.state.laps.length - index; 
+    const { laps, timeElapsed } = this.state;
+    const maxTime = Math.max(...laps);
+    const minTime = Math.min(...laps);
+  
+    return laps.map((time, index) => {
+      const lapIndex = laps.length - index;
+      const lapTextStyle =
+        time === maxTime ? styles.slowestLapText : time === minTime ? styles.fastestLapText : null;
+  
       return (
         <View key={index} style={styles.lap}>
-          <Text style={styles.lapText}>Lap {lapIndex}</Text>
-          <Text style={styles.lapText}>{formatTime(time)}</Text>
+          <Text style={[styles.lapText, lapTextStyle]}>Lap {lapIndex}</Text>
+          <Text style={[styles.lapText, lapTextStyle]}>{formatTime(time)}</Text>
         </View>
       );
     });
   }
+  
+  
 
   render() {
     return (
@@ -173,7 +186,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'darkgray', 
+    backgroundColor: '#696969', 
   },
   lapButtonText: {
     color: 'white', 
@@ -209,4 +222,10 @@ const styles = StyleSheet.create({
   stopButtonText: {
     color: 'red', 
   },
+  slowestLapText: {
+    color: 'red',
+  },
+  fastestLapText: {
+    color: 'green',
+  },    
 });
